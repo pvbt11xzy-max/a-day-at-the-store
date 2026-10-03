@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>A Day at the Store - Flashcards</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+        background: #F8F7F2;
+        color: #17233C;
+    }
+
+    .flashcard-container {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        text-align: center;
+    }
+
+    .title {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #17233C;
+    }
+
+    .subtitle {
+        font-size: 14px;
+        color: #667085;
+        margin-bottom: 24px;
+    }
+
+    /* Progress */
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: #667085;
+        margin-bottom: 8px;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 7px;
+        background: #DCE5EC;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 22px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        width: 10%;
+        background: #4EA5D9;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+
+    /* Flashcard */
+    .card-wrapper {
+        perspective: 1000px;
+        cursor: pointer;
+    }
+
+    .flashcard {
+        width: 100%;
+        min-height: 310px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s ease;
+    }
+
+    .flashcard.flipped {
+        transform: rotateY(180deg);
+    }
+
+    .card-side {
+        position: absolute;
+        width: 100%;
+        min-height: 310px;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+
+        background: #FFFFFF;
+        border: 1px solid #DCE5EC;
+        border-radius: 24px;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        padding: 35px;
+        box-shadow: 0 8px 25px rgba(23, 35, 60, 0.08);
+    }
+
+    .card-back {
+        transform: rotateY(180deg);
+    }
+
+    .card-label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        color: #4EA5D9;
+        margin-bottom: 18px;
+        text-transform: uppercase;
+    }
+
+    .card-word {
+        font-size: 34px;
+        font-weight: 600;
+        color: #17233C;
+        margin-bottom: 15px;
+    }
+
+    .card-question {
+        font-size: 22px;
+        font-weight: 500;
+        color: #17233C;
+        line-height: 1.5;
+    }
+
+    .card-answer {
+        font-size: 21px;
+        font-weight: 500;
+        color: #17233C;
+        line-height: 1.5;
+        max-width: 600px;
+    }
+
+    .vietnamese {
+        margin-top: 15px;
+        font-size: 17px;
+        color: #667085;
+        font-style: italic;
+    }
+
+    .hint {
+        margin-top: 25px;
+        font-size: 13px;
+        color: #98A2B3;
+    }
+
+    /* Buttons */
+    .controls {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 22px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        border: none;
+        border-radius: 12px;
+        padding: 11px 18px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .prev-btn,
+    .next-btn {
+        background: #FFFFFF;
+        color: #17233C;
+        border: 1px solid #DCE5EC;
+    }
+
+    .prev-btn:hover,
+    .next-btn:hover {
+        background: #F2F7FA;
+    }
+
+    .know-btn {
+        background: #E8F5EC;
+        color: #287A43;
+    }
+
+    .review-btn {
+        background: #FFF3E6;
+        color: #B25E16;
+    }
+
+    button:hover {
+        transform: translateY(-1px);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    /* Status */
+    .status {
+        min-height: 25px;
+        margin-top: 15px;
+        font-size: 13px;
+        color: #667085;
+    }
+
+    /* Finish */
+    .finish-screen {
+        display: none;
+        background: #FFFFFF;
+        border: 1px solid #DCE5EC;
+        border-radius: 24px;
+        padding: 45px 25px;
+        box-shadow: 0 8px 25px rgba(23, 35, 60, 0.08);
+    }
+
+    .finish-screen h2 {
+        margin-top: 0;
+        font-size: 27px;
+    }
+
+    .finish-screen p {
+        color: #667085;
+        line-height: 1.6;
+    }
+
+    .restart-btn {
+        margin-top: 15px;
+        background: #4EA5D9;
+        color: white;
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+
+        .flashcard-container {
+            padding: 20px 12px;
+        }
+
+        .title {
+            font-size: 23px;
+        }
+
+        .card-side,
+        .flashcard {
+            min-height: 280px;
+        }
+
+        .card-word {
+            font-size: 28px;
+        }
+
+        .card-question {
+            font-size: 19px;
+        }
+
+        .card-answer {
+            font-size: 18px;
+        }
+
+        .vietnamese {
+            font-size: 15px;
+        }
+
+        button {
+            padding: 10px 14px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="flashcard-container">
+
+    <div class="title">
+        A Day at the Store
+    </div>
+
+    <div class="subtitle">
+        Key Vocabulary • A2–B1
+    </div>
+
+    <div class="progress-info">
+        <span id="cardNumber">Card 1 of 10</span>
+        <span id="progressPercent">10%</span>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- FLASHCARD -->
+    <div class="card-wrapper" onclick="flipCard()">
+
+        <div class="flashcard" id="flashcard">
+
+            <!-- FRONT -->
+            <div class="card-side card-front">
+
+                <div class="card-label">
+                    Vocabulary
+                </div>
+
+                <div class="card-word" id="frontText">
+                    What is a cashier?
+                </div>
+
+                <div class="hint">
+                    Click the card to reveal the answer
+                </div>
+
+            </div>
+
+            <!-- BACK -->
+            <div class="card-side card-back">
+
+                <div class="card-label">
+                    Answer
+                </div>
+
+                <div class="card-answer" id="backText">
+                    A person who takes payments in a shop.
+                </div>
+
+                <div class="vietnamese" id="vietnameseText">
+                    nhân viên thu ngân
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BUTTONS -->
+    <div class="controls">
+
+        <button class="prev-btn" onclick="previousCard(event)">
+            ← Previous
+        </button>
+
+        <button class="review-btn" onclick="markReview(event)">
+            ✗ Review again
+        </button>
+
+        <button class="know-btn" onclick="markKnown(event)">
+            ✓ I know it
+        </button>
+
+        <button class="next-btn" onclick="nextCard(event)">
+            Next →
+        </button>
+
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <!-- FINISH SCREEN -->
+    <div class="finish-screen" id="finishScreen">
+
+        <h2>🎉 Great job!</h2>
+
+        <p>
+            You have completed all 10 vocabulary flashcards.
+        </p>
+
+        <p>
+            Now try the practice game to check your understanding.
+        </p>
+
+        <button class="restart-btn" onclick="restartCards()">
+            Review Again
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const cards = [
+
+    {
+        front: "What is a cashier?",
+        back: "A person who takes payments in a shop.",
+        vietnamese: "nhân viên thu ngân"
+    },
+
+    {
+        front: "What does salary mean?",
+        back: "Money you receive regularly for your work.",
+        vietnamese: "tiền lương"
+    },
+
+    {
+        front: "What is a supervisor?",
+        back: "A person who manages or checks other workers.",
+        vietnamese: "người giám sát / quản lý"
+    },
+
+    {
+        front: "What does overpay mean?",
+        back: "To pay someone more money than you should.",
+        vietnamese: "trả quá nhiều tiền"
+    },
+
+    {
+        front: "What does desperate mean?",
+        back: "Needing something very badly.",
+        vietnamese: "rất cần / tuyệt vọng"
+    },
+
+    {
+        front: "What does vanish mean?",
+        back: "To disappear suddenly or completely.",
+        vietnamese: "biến mất"
+    },
+
+    {
+        front: "What does tremble mean?",
+        back: "To shake slightly because of fear or emotion.",
+        vietnamese: "run / rung lên"
+    },
+
+    {
+        front: "What does leak mean?",
+        back: "To let water or another liquid escape.",
+        vietnamese: "rò rỉ / bị dột"
+    },
+
+    {
+        front: "What does integrity mean?",
+        back: "Being honest and doing the right thing.",
+        vietnamese: "sự chính trực"
+    },
+
+    {
+        front: "What does get promoted mean?",
+        back: "To move to a higher position at work.",
+        vietnamese: "được thăng chức"
+    }
+
+];
+
+
+let currentCard = 0;
+
+let knownCards = [];
+let reviewCards = [];
+
+
+
+function updateCard() {
+
+    const flashcard = document.getElementById("flashcard");
+
+    flashcard.classList.remove("flipped");
+
+    const card = cards[currentCard];
+
+    document.getElementById("frontText").textContent = card.front;
+    document.getElementById("backText").textContent = card.back;
+    document.getElementById("vietnameseText").textContent = card.vietnamese;
+
+    const number = currentCard + 1;
+    const percent = Math.round((number / cards.length) * 100);
+
+    document.getElementById("cardNumber").textContent =
+        "Card " + number + " of " + cards.length;
+
+    document.getElementById("progressPercent").textContent =
+        percent + "%";
+
+    document.getElementById("progressFill").style.width =
+        percent + "%";
+
+    document.getElementById("status").textContent = "";
+
+}
+
+
+
+function flipCard() {
+
+    document
+        .getElementById("flashcard")
+        .classList.toggle("flipped");
+
+}
+
+
+
+function nextCard(event) {
+
+    event.stopPropagation();
+
+    if (currentCard < cards.length - 1) {
+
+        currentCard++;
+
+        updateCard();
+
+    } else {
+
+        showFinish();
+
+    }
+
+}
+
+
+
+function previousCard(event) {
+
+    event.stopPropagation();
+
+    if (currentCard > 0) {
+
+        currentCard--;
+
+        updateCard();
+
+    }
+
+}
+
+
+
+function markKnown(event) {
+
+    event.stopPropagation();
+
+    if (!knownCards.includes(currentCard)) {
+
+        knownCards.push(currentCard);
+
+    }
+
+    document.getElementById("status").textContent =
+        "✓ Great! You know this word.";
+
+}
+
+
+
+function markReview(event) {
+
+    event.stopPropagation();
+
+    if (!reviewCards.includes(currentCard)) {
+
+        reviewCards.push(currentCard);
+
+    }
+
+    document.getElementById("status").textContent =
+        "✗ Added to your review list.";
+
+}
+
+
+
+function showFinish() {
+
+    document
+        .querySelector(".card-wrapper")
+        .style.display = "none";
+
+    document
+        .querySelector(".controls")
+        .style.display = "none";
+
+    document
+        .querySelector(".progress-info")
+        .style.display = "none";
+
+    document
+        .querySelector(".progress-bar")
+        .style.display = "none";
+
+    document
+        .getElementById("finishScreen")
+        .style.display = "block";
+
+}
+
+
+
+function restartCards() {
+
+    currentCard = 0;
+
+    knownCards = [];
+
+    reviewCards = [];
+
+    document
+        .querySelector(".card-wrapper")
+        .style.display = "block";
+
+    document
+        .querySelector(".controls")
+        .style.display = "flex";
+
+    document
+        .querySelector(".progress-info")
+        .style.display = "flex";
+
+    document
+        .querySelector(".progress-bar")
+        .style.display = "block";
+
+    document
+        .getElementById("finishScreen")
+        .style.display = "none";
+
+    updateCard();
+
+}
+
+
+
+updateCard();
+
+</script>
+
+</body>
+</html>
